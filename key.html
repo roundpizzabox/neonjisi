@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리모콘 식물 키우기</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0fdf4;
+            font-family: sans-serif;
+            user-select: none;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .plant-stage {
+            font-size: 100px;
+            margin: 20px 0;
+            transition: transform 0.2s ease, font-size 0.3s ease;
+        }
+
+        .plant-stage.bounce {
+            transform: scale(1.2);
+        }
+
+        .status {
+            font-size: 20px;
+            color: #166534;
+            font-weight: bold;
+        }
+
+        .guide {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+            background: #ffffff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="status" id="status-text">씨앗 상태입니다 (Stage 1/5)</div>
+        <div class="plant-stage" id="plant">🌱</div>
+        <div class="guide">리모콘 버튼(또는 키보드 스페이스/볼륨키)을 눌러보세요!</div>
+    </div>
+
+    <script>
+        // 식물 성장 단계 (이모지 및 설명)
+        const stages = [
+            { emoji: '🌱', text: '씨앗에서 싹이 틔었습니다! (약 복용 횟수 1/5)' },
+            { emoji: '🌿', text: '줄기와 잎이 자라납니다. (약 복용 횟수 2/5)' },
+            { emoji: '🪴', text: '화분이 가득 찼습니다! (약 복용 횟수 3/5)' },
+            { emoji: '🌳', text: '커다란 나무가 되었습니다! (약 복용 횟수 4/5)' },
+            { emoji: '🌸', text: '예쁜 꽃이 피었습니다! (약 복용 횟수 5/5)' }
+        ];
+
+        let currentStage = 0;
+
+        const plantElement = document.getElementById('plant');
+        const statusElement = document.getElementById('status-text');
+
+        // 식물 성장 함수
+        function growPlant() {
+            // 다음 단계로 이동 (끝까지 가면 다시 처음으로)
+            currentStage = (currentStage + 1) % stages.length;
+
+            // 화면 업데이트
+            plantElement.textContent = stages[currentStage].emoji;
+            statusElement.textContent = stages[currentStage].text;
+
+            // 바운스 애니메이션 효과
+            plantElement.classList.add('bounce');
+            setTimeout(() => {
+                plantElement.classList.remove('bounce');
+            }, 200);
+        }
+
+        // 키보드 및 블루투스 리모콘 키 입력 감지
+        window.addEventListener('keydown', function(event) {
+            // 리모콘이 주로 사용하는 키 코드들 (볼륨 조절, 미디어 재생, Enter, Space 등)
+            const allowedKeys = [
+                'VolumeUp', 'VolumeDown', 
+                'MediaPlayPause', 'MediaTrackNext', 
+                'Space', 'Enter', 'ArrowUp'
+            ];
+
+            // 특정 키 눌림 처리 및 브라우저 기본 동작 방지
+            if (allowedKeys.includes(event.code) || event.key === 'VolumeUp' || event.key === 'VolumeDown') {
+                event.preventDefault(); // 화면 스크롤이나 볼륨 조절 레이어 방지 시도
+                growPlant();
+            }
+        });
+    </script>
+</body>
+</html>
