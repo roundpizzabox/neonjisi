@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>약통 복용 알림 체험</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            max-width: 360px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        p.subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        /* 약통 버튼 스타일 */
+        .pill-bottle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            padding: 0;
+            transition: transform 0.15s ease, opacity 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .pill-bottle-btn:active:not(:disabled) {
+            transform: scale(0.92);
+        }
+        .pill-bottle-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        /* 약통 SVG 디자인 */
+        .bottle-svg {
+            width: 140px;
+            height: 180px;
+            filter: drop-shadow(0 8px 15px rgba(52, 152, 219, 0.25));
+            transition: filter 0.3s;
+        }
+        .bottle-svg.active {
+            filter: drop-shadow(0 8px 15px rgba(46, 204, 113, 0.4));
+        }
+
+        /* 상태 메시지 상자 */
+        .status-box {
+            margin-top: 25px;
+            padding: 14px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 14px;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        /* 알림 권한 허용 버튼 */
+        .permission-btn {
+            margin-top: 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💊 약 복용 알림 체험</h1>
+    <p class="subtitle">약통을 터치하면 진동/알림 후 3초 뒤 초기화됩니다.</p>
+
+    <!-- 약통 버튼 -->
+    <button class="pill-bottle-btn" id="pillBtn" onclick="takePill()">
+        <svg class="bottle-svg" id="bottleSvg" viewBox="0 0 100 130">
+            <!-- 뚜껑 -->
+            <rect x="25" y="10" width="50" height="16" rx="4" fill="#2980b9" />
+            <rect x="23" y="24" width="54" height="6" rx="2" fill="#1f618d" />
+            <!-- 병 본체 -->
+            <rect x="20" y="30" width="60" height="85" rx="12" fill="#3498db" opacity="0.9" />
+            <!-- 라벨 -->
+            <rect x="20" y="50" width="60" height="45" fill="#ffffff" />
+            <!-- 라벨 내부 십자가 -->
+            <rect x="46" y="60" width="8" height="20" rx="2" fill="#e74c3c" />
+            <rect x="40" y="66" width="20" height="8" rx="2" fill="#e74c3c" />
+            <line x1="30" y1="87" x2="70" y2="87" stroke="#bdc3c7" stroke-width="2" stroke-dasharray="2 2" />
+        </svg>
+    </button>
+
+    <div class="status-box" id="statusMessage">
+        약통을 터치하세요!
+    </div>
+
+    <button class="permission-btn" id="permBtn" onclick="requestNotificationPermission()">
+        🔔 푸시 알림 권한 허용하기
+    </button>
+</div>
+
+<script>
+    let isProcessing = false;
+
+    window.onload = function() {
+        if ("Notification" in window && Notification.permission === "granted") {
+            document.getElementById('permBtn').style.display = 'none';
+        }
+    };
+
+    function requestNotificationPermission() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    alert("푸시 알림 권한이 허용되었습니다!");
+                    document.getElementById('permBtn').style.display = 'none';
+                } else {
+                    alert("알림 권한이 거부되었습니다.");
+                }
+            });
+        }
+    }
+
+    // 간단한 효과음 생성 함수 (Web Audio API)
+    function playBeep() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 음
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        } catch (e) {
+            // AudioContext 미지원 시 무시
+        }
+    }
+
+    function takePill() {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        const pillBtn = document.getElementById('pillBtn');
+        const bottleSvg = document.getElementById('bottleSvg');
+        const statusBox = document.getElementById('statusMessage');
+
+        // 버튼 비활성화
+        pillBtn.disabled = true;
+        bottleSvg.classList.add('active');
+
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // 1. 진동 발생 (스마트폰 크롬/안드로이드 호환)
+        if ("vibrate" in navigator) {
+            navigator.vibrate([200, 100, 200]);
+        }
+
+        // 2. 효과음 재생
+        playBeep();
+
+        // 3. 실제 스마트폰 푸시 알림 전송
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("💊 약 복용 완료!", {
+                body: `${timeString}에 약 복용이 정상 처리되었습니다.`,
+                icon: "https://cdn-icons-png.flaticon.com/512/883/883407.png"
+            });
+        }
+
+        // 4. 상태 메시지 및 카운트다운 업데이트
+        statusBox.style.backgroundColor = "#e8f8f5";
+        statusBox.style.color = "#2ecc71";
+        
+        let timeLeft = 3;
+        statusBox.innerText = `✅ 복용 알림 완료! (${timeLeft}초 후 초기화)`;
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                statusBox.innerText = `✅ 복용 알림 완료! (${timeLeft}초 후 초기화)`;
+            } else {
+                clearInterval(timer);
+                
+                // 3초 후 초기화
+                statusBox.style.backgroundColor = "#f8f9fa";
+                statusBox.style.color = "#495057";
+                statusBox.innerText = "약통을 터치하세요!";
+                
+                bottleSvg.classList.remove('active');
+                pillBtn.disabled = false;
+                isProcessing = false;
+            }
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
