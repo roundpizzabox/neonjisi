@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스마트 넛지 약통 복용 시뮬레이터 (연속 시연용)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-slow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+    .animate-pop { animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    .animate-pulse-slow { animation: pulse-slow 2s infinite ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+  <div class="flex flex-col md:flex-row gap-8 items-center justify-center max-w-5xl w-full">
+    
+    <!-- 스마트폰 앱 화면 -->
+    <div class="relative w-[320px] h-[600px] bg-slate-950 rounded-[40px] p-4 shadow-2xl border-4 border-slate-700 flex flex-col justify-between overflow-hidden">
+      <div class="bg-slate-50 w-full h-full rounded-[30px] flex flex-col justify-between pt-6 pb-6 px-5 overflow-hidden relative">
+        <div>
+          <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">오늘의 복용 미션</span>
+          <h1 class="text-lg font-extrabold text-slate-800 mt-2">월요일 아침 약 💊</h1>
+        </div>
+
+        <div class="my-auto flex flex-col items-center text-center">
+          <div class="relative w-36 h-36 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100 mb-4">
+            <!-- 🌱 대기 상태 (ID 추가) -->
+            <div id="char-waiting" class="flex flex-col items-center animate-pulse-slow">
+              <span class="text-5xl">🌱</span>
+              <span class="text-xs font-semibold text-indigo-400 mt-2">약 기다리는 중</span>
+            </div>
+            <!-- 🌻 완료 상태 (ID 추가, 초기 hidden) -->
+            <div id="char-success" class="hidden flex-col items-center animate-pop">
+              <span class="text-6xl">🌻</span>
+              <span class="text-xs font-bold text-emerald-600 mt-2">파워 업 완료!</span>
+            </div>
+          </div>
+          <!-- ⏳ 상태 배지 (ID 추가) -->
+          <div id="status-badge" class="px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold transitions-all">⏳ 복용 대기 중</div>
+        </div>
+
+        <div class="bg-indigo-900 text-white p-3.5 rounded-2xl transitions-all">
+          <div class="flex justify-between items-center text-xs">
+            <span>연결된 보호자</span>
+            <span id="guardian-status" class="bg-indigo-950 px-2 py-0.5 rounded-full text-[10px]">대기 중</span>
+          </div>
+          <p id="guardian-msg" class="text-xs text-white mt-1 truncate">딸(김민지) 님에게 알림 대기</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 버튼 조종 패널 -->
+    <div class="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-3xl p-6 text-white flex flex-col justify-between shadow-xl">
+      <h2 class="text-lg font-black">블루투스 버튼 실험기</h2>
+      <p class="text-xs text-slate-400 mt-1">버튼을 한 번 누르면 완료, 또 누르면 초기화됩니다.</p>
+      
+      <div class="my-6 flex flex-col items-center">
+        <!-- 💡 버튼 텍스트 변경 (ID 추가) -->
+        <button id="pill-btn" onclick="togglePillTaken()" class="w-24 h-24 rounded-full bg-indigo-600 shadow-[0_6px_0_#3730a3] active:translate-y-1 active:shadow-none font-bold text-xs text-white transition-all">
+          복용 완료
+        </button>
+      </div>
+
+      <div class="bg-slate-950 rounded-xl p-3 text-xs font-mono">
+        <div id="log-container" class="h-20 overflow-y-auto space-y-1 text-slate-400 pr-1">
+          <div class="text-indigo-400">> 시스템 준비 완료</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let isTaken = false; // 현재 상태 저장 변수
+    let guardianTimer = null; // 알림 타이머 저장용
+
+    // 💡 [핵심 수정] 상태를 토글(전환)하는 함수로 변경
+    function togglePillTaken() {
+      const charWaiting = document.getElementById('char-waiting');
+      const charSuccess = document.getElementById('char-success');
+      const statusBadge = document.getElementById('status-badge');
+      const pillBtn = document.getElementById('pill-btn');
+      const guardianStatus = document.getElementById('guardian-status');
+      const guardianMsg = document.getElementById('guardian-msg');
+      const log = document.getElementById('log-container');
+
+      // 기존에 실행되던 보호자 알림 타이머가 있다면 취소 (초기화 시 중요)
+      if (guardianTimer) clearTimeout(guardianTimer);
+
+      if (!isTaken) {
+        // [1] 미복용 -> 복용 완료 처리
+        isTaken = true;
+        charWaiting.classList.add('hidden');
+        charSuccess.classList.remove('hidden');
+        statusBadge.className = 'px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold';
+        statusBadge.innerText = '🎉 오늘 복용 완료!';
+        
+        // 버튼 디자인 변경
+        pillBtn.innerText = '다시 시연하기';
+        pillBtn.className = 'w-24 h-24 rounded-full bg-slate-600 shadow-[0_6px_0_#334155] active:translate-y-1 active:shadow-none font-bold text-xs text-white transition-all';
+
+        log.innerHTML += '<div class="text-amber-400">> 📡 BLE 신호 감지! 복용 완료🌻</div>';
+        
+        // 보호자 알림 시뮬레이션
+        guardianTimer = setTimeout(() => {
+          log.innerHTML += '<div class="text-green-400">> 📲 보호자에게 푸시 알림 완료!</div>';
+          log.scrollTop = log.scrollHeight;
+          guardianStatus.innerText = '알림 완료';
+          guardianStatus.className = 'bg-emerald-500 px-2 py-0.5 rounded-full text-[10px] text-emerald-950 font-bold';
+          guardianMsg.innerText = '“어머니께서 약을 복용하셨습니다!”';
+        }, 1000);
+
+      } else {
+        // [2] 복용 완료 -> 다시 대기 상태로 초기화
+        isTaken = false;
+        charWaiting.classList.remove('hidden');
+        charSuccess.classList.add('hidden');
+        statusBadge.className = 'px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold';
+        statusBadge.innerText = '⏳ 복용 대기 중';
+        
+        // 버튼 디자인 원상복구
+        pillBtn.innerText = '복용 완료';
+        pillBtn.className = 'w-24 h-24 rounded-full bg-indigo-600 shadow-[0_6px_0_#3730a3] active:translate-y-1 active:shadow-none font-bold text-xs text-white transition-all';
+
+        // 보호자 영역 초기화
+        guardianStatus.innerText = '대기 중';
+        guardianStatus.className = 'bg-indigo-950 px-2 py-0.5 rounded-full text-[10px]';
+        guardianMsg.innerText = '딸(김민지) 님에게 알림 대기';
+
+        log.innerHTML += '<div class="text-indigo-400">> ♻️ 시뮬레이터 초기화 (대기 상태🌱)</div>';
+      }
+      // 로그 자동 스크롤
+      log.scrollTop = log.scrollHeight;
+    }
+  </script>
+</body>
+</html>
