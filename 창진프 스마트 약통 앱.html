@@ -60,4 +60,232 @@
           <!-- 약 카드 -->
           <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm mt-2">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0
+              <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">오늘의 복용 일정</span>
+              <span id="display-time" class="text-xs font-semibold text-slate-500">아침 08:30</span>
+            </div>
+            <h1 id="display-name" class="text-base font-extrabold text-slate-800 truncate">비타민C & 고혈압 약 💊</h1>
+            <p id="display-memo" class="text-[11px] text-slate-400 mt-0.5 truncate">식후 30분 복용 (1포)</p>
+          </div>
+
+          <!-- 캐릭터 애니메이션 -->
+          <div class="my-auto flex flex-col items-center text-center">
+            <div class="relative w-36 h-36 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100 mb-2">
+              <div id="user-char-waiting" class="flex flex-col items-center animate-pulse-slow">
+                <span class="text-5xl">🌱</span>
+                <span class="text-[11px] font-semibold text-indigo-400 mt-2">약 먹을 시간이에요!</span>
+              </div>
+              <div id="user-char-success" class="hidden flex-col items-center animate-pop">
+                <span class="text-6xl">🌻</span>
+                <span class="text-[11px] font-bold text-emerald-600 mt-2">파워 업 완료!</span>
+              </div>
+            </div>
+            <div id="user-badge" class="px-3.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">⏳ 복용 대기 중</div>
+          </div>
+
+          <!-- 스마트폰 볼륨 버튼 안내 패널 -->
+          <div class="w-full bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold py-3 px-4 rounded-2xl text-xs shadow-sm flex items-center justify-center gap-2 text-center">
+            <i class="fa-solid fa-volume-high text-indigo-600 text-base"></i>
+            <span>휴대폰 [볼륨 버튼]을 누르면 약 복용이 완료됩니다.</span>
+          </div>
+        </div>
+
+        <!-- [모드 3] 보호자 모드 화면 -->
+        <div id="screen-guardian" class="hidden h-full flex flex-col justify-between">
+          <div class="flex justify-between items-center border-b pb-1.5">
+            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">보호자 모드</span>
+            <button onclick="goHome()" class="text-[10px] text-slate-400 underline">모드 변경</button>
+          </div>
+
+          <div class="bg-emerald-900 text-white p-3 rounded-2xl shadow-sm mt-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-xs">👵</div>
+              <div>
+                <h2 class="text-xs font-bold text-emerald-100">어머니 복용 상태</h2>
+                <p id="guardian-status-text" class="text-[11px] text-emerald-300">현재: 미복용 (대기 중)</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="guardian-push" class="hidden bg-emerald-100 border-2 border-emerald-500 rounded-2xl p-4 my-auto animate-pop text-center">
+            <span class="text-3xl">🔔</span>
+            <h3 class="text-sm font-black text-emerald-900 mt-1">복용 완료 알림!</h3>
+            <p class="text-xs text-emerald-700 mt-0.5">어머니께서 약을 복용하셨습니다.<br>📱 텔레그램으로 알림 발송됨!</p>
+          </div>
+
+          <div id="guardian-idle" class="my-auto text-center py-6">
+            <span class="text-4xl opacity-40">📱</span>
+            <p class="text-xs text-slate-400 mt-2">볼륨 버튼을 누르면 이곳과<br>텔레그램으로 알림이 옵니다.</p>
+          </div>
+
+          <div class="bg-slate-900 rounded-xl p-2.5 text-[11px] font-mono text-white">
+            <div id="guardian-log" class="h-14 overflow-y-auto space-y-1 text-slate-300">
+              <div class="text-emerald-400">> 보호자 모니터링 작동 중</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ✏️ 약 정보 입력 패널 -->
+    <div class="w-full max-w-md space-y-4">
+      <div class="bg-slate-800 border border-slate-700 rounded-3xl p-5 text-white shadow-xl">
+        <div class="flex items-center gap-2 text-indigo-400 font-bold text-xs mb-3">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>오늘 먹어야 할 약 등록/수정</span>
+        </div>
+
+        <div class="space-y-2.5 text-xs">
+          <div>
+            <label class="text-slate-400 block mb-1">약 이름</label>
+            <input type="text" id="input-name" value="비타민C & 고혈압 약 💊" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-slate-400 block mb-1">복용 시간대</label>
+              <input type="text" id="input-time" value="아침 08:30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">메모/복용법</label>
+              <input type="text" id="input-memo" value="식후 30분 복용 (1포)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+          <button onclick="updatePillInfo()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs transition-colors mt-1">
+            앱 화면에 적용하기
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 🚀 Webhook URL
+    const WEBHOOK_URL = "https://hook.us2.make.com/vhv4225gmr7x3l3iqs9j8auxlg2k8gx6";
+
+    let currentRole = null;
+    let isProcessing = false;
+
+    // 텔레그램 알림 발송
+    function sendTelegramNotification() {
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "어머니께서 방금 약을 복용하셨습니다!",
+          time: new Date().toLocaleTimeString('ko-KR')
+        })
+      })
+      .then(() => console.log("텔레그램 알림 발송 완료!"))
+      .catch(err => console.error("알림 발송 실패:", err));
+    }
+
+    // 약 정보 업데이트
+    function updatePillInfo() {
+      const name = document.getElementById('input-name').value;
+      const time = document.getElementById('input-time').value;
+      const memo = document.getElementById('input-memo').value;
+
+      document.getElementById('display-name').innerText = name || '약 이름 없음';
+      document.getElementById('display-time').innerText = time || '시간 미지정';
+      document.getElementById('display-memo').innerText = memo || '-';
+      alert('오늘의 약 정보가 업데이트되었습니다!');
+    }
+
+    function selectRole(role) {
+      currentRole = role;
+      document.getElementById('screen-select').classList.add('hidden');
+      if (role === 'user') {
+        document.getElementById('screen-user').classList.remove('hidden');
+      } else {
+        document.getElementById('screen-guardian').classList.remove('hidden');
+      }
+    }
+
+    function goHome() {
+      document.getElementById('screen-select').classList.remove('hidden');
+      document.getElementById('screen-user').classList.add('hidden');
+      document.getElementById('screen-guardian').classList.add('hidden');
+    }
+
+    // 📲 1. Android 네이티브 앱 물리 볼륨 버튼 이벤트 연동 (Capacitor)
+    document.addEventListener('deviceready', initNativeVolumeListener);
+    window.addEventListener('load', initNativeVolumeListener);
+
+    function initNativeVolumeListener() {
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.VolumeButtons) {
+        const { VolumeButtons } = window.Capacitor.Plugins;
+
+        // 볼륨 UP 버튼 감지
+        VolumeButtons.addListener('volumeUpButtonPressed', () => {
+          if (currentRole === 'user' && !isProcessing) {
+            pressUserPill();
+          }
+        });
+
+        // 볼륨 DOWN 버튼 감지
+        VolumeButtons.addListener('volumeDownButtonPressed', () => {
+          if (currentRole === 'user' && !isProcessing) {
+            pressUserPill();
+          }
+        });
+      }
+    }
+
+    // 💻 2. PC/데스크톱 디버깅용 키보드 이벤트 (볼륨키, 스페이스바, 엔터)
+    window.addEventListener('keydown', function(e) {
+      const isTargetKey = e.key === 'AudioVolumeUp' || e.code === 'AudioVolumeUp' || 
+                          e.key === 'AudioVolumeDown' || e.code === 'AudioVolumeDown' || 
+                          e.code === 'Space' || e.key === 'Enter';
+
+      if (isTargetKey && currentRole === 'user' && !isProcessing) {
+        e.preventDefault();
+        pressUserPill();
+      }
+    });
+
+    // 💊 메인 기능 (볼륨 버튼 누르면 실행되는 기능)
+    function pressUserPill() {
+      if (isProcessing) return;
+      isProcessing = true;
+
+      // 📲 1. 실제 핸드폰 텔레그램으로 알림 발송!
+      sendTelegramNotification();
+
+      // 2. 본인 모드 화면 변경
+      document.getElementById('user-char-waiting').classList.add('hidden');
+      document.getElementById('user-char-success').classList.remove('hidden');
+      document.getElementById('user-badge').className = 'px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold animate-pop';
+      document.getElementById('user-badge').innerText = '🎉 미션 성공!';
+
+      // 3. 보호자 모드 화면 변경
+      const guardianPush = document.getElementById('guardian-push');
+      const guardianIdle = document.getElementById('guardian-idle');
+      const guardianLog = document.getElementById('guardian-log');
+      const guardianStatus = document.getElementById('guardian-status-text');
+
+      guardianIdle.classList.add('hidden');
+      guardianPush.classList.remove('hidden');
+      guardianStatus.innerText = '현재: 복용 완료 (🎉)';
+
+      const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+      guardianLog.innerHTML += `<div class="text-amber-400">[${time}] 📲 텔레그램 알림 발송 완료!</div>`;
+      guardianLog.scrollTop = guardianLog.scrollHeight;
+
+      // 4. 3초 후 자동 리셋
+      setTimeout(() => {
+        document.getElementById('user-char-waiting').classList.remove('hidden');
+        document.getElementById('user-char-success').classList.add('hidden');
+        document.getElementById('user-badge').className = 'px-3.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold';
+        document.getElementById('user-badge').innerText = '⏳ 복용 대기 중';
+
+        guardianPush.classList.add('hidden');
+        guardianIdle.classList.remove('hidden');
+        guardianStatus.innerText = '현재: 미복용 (대기 중)';
+
+        isProcessing = false;
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
