@@ -82,11 +82,11 @@
             <div id="user-badge" class="px-3.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">⏳ 복용 대기 중</div>
           </div>
 
-          <!-- 스마트폰 볼륨 버튼 안내 패널 -->
-          <div class="w-full bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold py-3 px-4 rounded-2xl text-xs shadow-sm flex items-center justify-center gap-2 text-center">
-            <i class="fa-solid fa-volume-high text-indigo-600 text-base"></i>
-            <span>휴대폰 [볼륨 버튼]을 누르면 약 복용이 완료됩니다.</span>
-          </div>
+          <!-- 복용 버튼 -->
+          <button onclick="pressUserPill()" class="w-full bg-indigo-600 active:bg-indigo-800 text-white font-bold py-3 rounded-2xl text-xs shadow-lg flex items-center justify-center gap-2">
+            <i class="fa-solid fa-hand-pointer"></i>
+            <span>[BLE 버튼] 약 복용하기</span>
+          </button>
         </div>
 
         <!-- [모드 3] 보호자 모드 화면 -->
@@ -114,7 +114,7 @@
 
           <div id="guardian-idle" class="my-auto text-center py-6">
             <span class="text-4xl opacity-40">📱</span>
-            <p class="text-xs text-slate-400 mt-2">볼륨 버튼을 누르면 이곳과<br>텔레그램으로 알림이 옵니다.</p>
+            <p class="text-xs text-slate-400 mt-2">버튼을 누르면 이곳과<br>텔레그램으로 알림이 옵니다.</p>
           </div>
 
           <div class="bg-slate-900 rounded-xl p-2.5 text-[11px] font-mono text-white">
@@ -160,13 +160,13 @@
   </div>
 
   <script>
-    // 🚀 Webhook URL
+    // 🚀 발급받으신 Webhook URL 적용
     const WEBHOOK_URL = "https://hook.us2.make.com/vhv4225gmr7x3l3iqs9j8auxlg2k8gx6";
 
     let currentRole = null;
     let isProcessing = false;
 
-    // 텔레그램 알림 발송
+    // 텔레그램으로 알림 보내는 함수
     function sendTelegramNotification() {
       fetch(WEBHOOK_URL, {
         method: "POST",
@@ -180,7 +180,7 @@
       .catch(err => console.error("알림 발송 실패:", err));
     }
 
-    // 약 정보 업데이트
+    // 약 정보 등록/수정
     function updatePillInfo() {
       const name = document.getElementById('input-name').value;
       const time = document.getElementById('input-time').value;
@@ -208,43 +208,15 @@
       document.getElementById('screen-guardian').classList.add('hidden');
     }
 
-    // 📲 1. Android 네이티브 앱 물리 볼륨 버튼 이벤트 연동 (Capacitor)
-    document.addEventListener('deviceready', initNativeVolumeListener);
-    window.addEventListener('load', initNativeVolumeListener);
-
-    function initNativeVolumeListener() {
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.VolumeButtons) {
-        const { VolumeButtons } = window.Capacitor.Plugins;
-
-        // 볼륨 UP 버튼 감지
-        VolumeButtons.addListener('volumeUpButtonPressed', () => {
-          if (currentRole === 'user' && !isProcessing) {
-            pressUserPill();
-          }
-        });
-
-        // 볼륨 DOWN 버튼 감지
-        VolumeButtons.addListener('volumeDownButtonPressed', () => {
-          if (currentRole === 'user' && !isProcessing) {
-            pressUserPill();
-          }
-        });
-      }
-    }
-
-    // 💻 2. PC/데스크톱 디버깅용 키보드 이벤트 (볼륨키, 스페이스바, 엔터)
+    // Space 키 동작 지원
     window.addEventListener('keydown', function(e) {
-      const isTargetKey = e.key === 'AudioVolumeUp' || e.code === 'AudioVolumeUp' || 
-                          e.key === 'AudioVolumeDown' || e.code === 'AudioVolumeDown' || 
-                          e.code === 'Space' || e.key === 'Enter';
-
-      if (isTargetKey && currentRole === 'user' && !isProcessing) {
+      if ((e.code === 'Space' || e.key === 'Enter') && currentRole === 'user' && !isProcessing) {
         e.preventDefault();
         pressUserPill();
       }
     });
 
-    // 💊 메인 기능 (볼륨 버튼 누르면 실행되는 기능)
+    // 버튼 눌렀을 때 실행되는 메인 기능
     function pressUserPill() {
       if (isProcessing) return;
       isProcessing = true;
